@@ -3,6 +3,8 @@
 <body>
     <h1>us belt</h1>
     <h3>score: <span id="score">0</span>%</h3>
+    <h3>progress: <span id="progress">0/0</span> (<span id="percent">0</span>%)</h3>
+    <h3>fps: <span id="fps">0</span></h3>
     <img id="display" style="width: 640px; height: 480px; border: 1px solid black;" />
 
     <script src="/socket.io/socket.io.js"></script>
@@ -10,10 +12,31 @@
         const socket = io();
         const img = document.getElementById('display');
         const scoreSpan = document.getElementById('score');
+        const progressSpan = document.getElementById('progress');
+        const percentSpan = document.getElementById('percent');
+        const fpsSpan = document.getElementById('fps');
+
+        let frameCount = 0;
+        let lastTime = Date.now();
+        let fpsCounter = 0;
 
         socket.on('video_frame', (data) => {
             img.src = "data:image/jpeg;base64," + data.image;
             scoreSpan.innerText = data.score;
+            
+            if (data.current && data.total) {
+                progressSpan.innerText = data.current + '/' + data.total;
+                percentSpan.innerText = ((data.current / data.total) * 100).toFixed(1);
+            }
+
+            frameCount++;
+            fpsCounter++;
+            const now = Date.now();
+            if (now - lastTime >= 1000) {
+                fpsSpan.innerText = fpsCounter;
+                fpsCounter = 0;
+                lastTime = now;
+            }
         });
     </script>
 </body>
